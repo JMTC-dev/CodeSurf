@@ -12,31 +12,31 @@ let videoPaused = false;
 let hideTimeout: NodeJS.Timeout | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log("CodeSurf extension activated");
+  console.log("codesurfers extension activated");
 
   // Initialize stats tracker
   statsTracker = new StatsTracker(context);
 
   // Register commands
   context.subscriptions.push(
-    vscode.commands.registerCommand("codesurf.toggleVideo", () => {
+    vscode.commands.registerCommand("codesurfers.toggleVideo", () => {
       toggleVideoPanel(context);
     })
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("codesurf.setVideoUrl", async () => {
+    vscode.commands.registerCommand("codesurfers.setVideoUrl", async () => {
       const url = await vscode.window.showInputBox({
         prompt:
           "Enter YouTube embed URL (e.g., https://www.youtube.com/embed/VIDEO_ID)",
         value: vscode.workspace
-          .getConfiguration("codesurf")
+          .getConfiguration("codesurfers")
           .get("videoUrl") as string,
       });
 
       if (url) {
         await vscode.workspace
-          .getConfiguration("codesurf")
+          .getConfiguration("codesurfers")
           .update("videoUrl", url, true);
         if (videoPanel) {
           updateVideoUrl(url);
@@ -46,7 +46,7 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("codesurf.showStats", () => {
+    vscode.commands.registerCommand("codesurfers.showStats", () => {
       vscode.window.showInformationMessage(statsTracker.getFormattedStats(), {
         modal: true,
       });
@@ -54,9 +54,9 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("codesurf.resetStats", async () => {
+    vscode.commands.registerCommand("codesurfers.resetStats", async () => {
       const confirm = await vscode.window.showWarningMessage(
-        "Reset all CodeSurf statistics?",
+        "Reset all codesurfers statistics?",
         "Yes",
         "No"
       );
@@ -71,7 +71,7 @@ export function activate(context: vscode.ExtensionContext) {
   startCodeGenerationDetection(context);
 
   // Pause on focus if configured
-  if (vscode.workspace.getConfiguration("codesurf").get("pauseOnFocus")) {
+  if (vscode.workspace.getConfiguration("codesurfers").get("pauseOnFocus")) {
     context.subscriptions.push(
       vscode.window.onDidChangeWindowState((state) => {
         if (state.focused && isVideoPlaying) {
@@ -123,7 +123,7 @@ function startCodeGenerationDetection(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.workspace.onDidChangeTextDocument(async (event) => {
       const now = Date.now();
-      const config = vscode.workspace.getConfiguration("codesurf");
+      const config = vscode.workspace.getConfiguration("codesurfers");
       const sensitivity = config.get("detectionSensitivity", 100);
 
       // Track file changes for multi-file detection
@@ -186,7 +186,7 @@ function startCodeGenerationDetection(context: vscode.ExtensionContext) {
     vscode.languages.onDidChangeDiagnostics((event) => {
       // Large numbers of diagnostic changes can indicate AI-generated code
       if (event.uris.length > 3 && !isVideoPlaying) {
-        const config = vscode.workspace.getConfiguration("codesurf");
+        const config = vscode.workspace.getConfiguration("codesurfers");
         if (config.get("autoPlay")) {
           startVideo(context);
         }
@@ -198,7 +198,7 @@ function startCodeGenerationDetection(context: vscode.ExtensionContext) {
   generationDetectionInterval = setInterval(() => {
     const now = Date.now();
     const timeSinceLastEdit = now - lastEditTimestamp;
-    const config = vscode.workspace.getConfiguration("codesurf");
+    const config = vscode.workspace.getConfiguration("codesurfers");
 
     // Clean up old file change entries
     for (const [file, timestamp] of recentFileChanges) {
@@ -240,7 +240,7 @@ function createVideoPanel(context: vscode.ExtensionContext) {
   const wasVideoPaused = videoPaused;
 
   // Get configured panel column
-  const config = vscode.workspace.getConfiguration("codesurf");
+  const config = vscode.workspace.getConfiguration("codesurfers");
   const panelColumn = config.get("panelColumn", "beside") as string;
 
   let viewColumn: vscode.ViewColumn;
@@ -283,8 +283,8 @@ function createVideoPanel(context: vscode.ExtensionContext) {
   }
 
   videoPanel = vscode.window.createWebviewPanel(
-    "codesurf",
-    "CodeSurf",
+    "codesurfers",
+    "codesurfers",
     viewColumn,
     {
       enableScripts: true,
@@ -293,7 +293,7 @@ function createVideoPanel(context: vscode.ExtensionContext) {
   );
 
   const videoUrl = vscode.workspace
-    .getConfiguration("codesurf")
+    .getConfiguration("codesurfers")
     .get("videoUrl") as string;
   videoPanel.webview.html = getWebviewContent(videoUrl);
 
@@ -325,7 +325,7 @@ function getWebviewContent(videoUrl: string): string {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>CodeSurf</title>
+        <title>codesurfers</title>
         <style>
             html, body {
                 margin: 0;
@@ -492,7 +492,7 @@ function startVideo(context: vscode.ExtensionContext) {
   const editor = vscode.window.activeTextEditor;
   currentLineCount = editor ? editor.document.lineCount : 0;
   const videoUrl = vscode.workspace
-    .getConfiguration("codesurf")
+    .getConfiguration("codesurfers")
     .get("videoUrl") as string;
   statsTracker.startSession(videoUrl, currentLineCount);
 }

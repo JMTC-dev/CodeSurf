@@ -1,12 +1,12 @@
 {
-  "name": "codesurf",
-  "displayName": "CodeSurf",
+  "name": "codesurfers",
+  "displayName": "CodeSurfers",
   "description": "Play Subway Surfer clips while generating code",
   "version": "1.0.0",
-  "publisher": "codesurf",
+  "publisher": "codesurfers",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/codesurf"
+    "url": "https://github.com/yourusername/codesurfers"
   },
   "engines": {
     "vscode": "^1.95.0"
@@ -29,44 +29,44 @@
   "contributes": {
     "commands": [
       {
-        "command": "codesurf.toggleVideo",
-        "title": "CodeSurf: Toggle Subway Surfer Video"
+        "command": "codesurfers.toggleVideo",
+        "title": "codesurfers: Toggle Subway Surfer Video"
       },
       {
-        "command": "codesurf.setVideoUrl",
-        "title": "CodeSurf: Set YouTube Video URL"
+        "command": "codesurfers.setVideoUrl",
+        "title": "codesurfers: Set YouTube Video URL"
       },
       {
-        "command": "codesurf.showStats",
-        "title": "CodeSurf: Show Statistics",
+        "command": "codesurfers.showStats",
+        "title": "codesurfers: Show Statistics",
         "icon": "$(graph)"
       },
       {
-        "command": "codesurf.resetStats",
-        "title": "CodeSurf: Reset Statistics"
+        "command": "codesurfers.resetStats",
+        "title": "codesurfers: Reset Statistics"
       }
     ],
     "configuration": {
-      "title": "CodeSurf",
+      "title": "codesurfers",
       "properties": {
-        "codesurf.videoUrl": {
+        "codesurfers.videoUrl": {
           "type": "string",
-          "default": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+          "default": "https://www.youtube.com/embed/eRXE8Aebp7s",
           "description": "YouTube video URL to play (use embed URL format)"
         },
-        "codesurf.autoPlay": {
+        "codesurfers.autoPlay": {
           "type": "boolean",
           "default": true,
           "description": "Automatically play video when code generation starts"
         },
-        "codesurf.detectionSensitivity": {
+        "codesurfers.detectionSensitivity": {
           "type": "number",
           "default": 100,
           "minimum": 50,
           "maximum": 500,
           "description": "Milliseconds between edits to trigger video (lower = more sensitive)"
         },
-        "codesurf.videoPosition": {
+        "codesurfers.videoPosition": {
           "type": "string",
           "default": "sidebar",
           "enum": [
@@ -78,36 +78,36 @@
           ],
           "description": "Position of the video panel"
         },
-        "codesurf.videoOpacity": {
+        "codesurfers.videoOpacity": {
           "type": "number",
           "default": 1,
           "minimum": 0.3,
           "maximum": 1,
           "description": "Opacity of the video panel (0.3-1.0)"
         },
-        "codesurf.pauseOnFocus": {
+        "codesurfers.pauseOnFocus": {
           "type": "boolean",
           "default": false,
           "description": "Pause video when editor gains focus"
         },
-        "codesurf.soundEnabled": {
+        "codesurfers.soundEnabled": {
           "type": "boolean",
           "default": false,
           "description": "Enable sound by default (requires user interaction)"
         },
-        "codesurf.autoHide": {
+        "codesurfers.autoHide": {
           "type": "boolean",
           "default": false,
           "description": "Automatically hide video panel when code generation stops"
         },
-        "codesurf.hideDelay": {
+        "codesurfers.hideDelay": {
           "type": "number",
-          "default": 4000,
+          "default": 10000,
           "minimum": 500,
           "maximum": 10000,
           "description": "Milliseconds to wait before hiding video after generation stops (when autoHide is enabled)"
         },
-        "codesurf.panelColumn": {
+        "codesurfers.panelColumn": {
           "type": "string",
           "default": "beside",
           "enum": [
@@ -142,7 +142,7 @@
     },
     "keybindings": [
       {
-        "command": "codesurf.toggleVideo",
+        "command": "codesurfers.toggleVideo",
         "key": "ctrl+shift+s",
         "mac": "cmd+shift+s"
       }

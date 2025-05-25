@@ -1,6 +1,9 @@
 import * as vscode from "vscode";
 import { StatsTracker } from "./stats";
 
+// Create output channel for debugging
+const outputChannel = vscode.window.createOutputChannel("CodeSurfers");
+
 let videoPanel: vscode.WebviewPanel | undefined;
 let isVideoPlaying = false;
 let lastEditTimestamp = 0;
@@ -12,6 +15,7 @@ let videoPaused = false;
 let hideTimeout: NodeJS.Timeout | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
+  outputChannel.appendLine("CodeSurfers extension activated");
   console.log("codesurfers extension activated");
 
   // Initialize stats tracker
@@ -194,14 +198,31 @@ function startCodeGenerationDetection(context: vscode.ExtensionContext) {
         }
 
         // Trigger if detection criteria met
-        if (shouldTrigger && !isVideoPlaying && config.get("autoPlay")) {
+        if (shouldTrigger && config.get("autoPlay")) {
+          outputChannel.appendLine(
+            `[Generation detected] shouldTrigger: ${shouldTrigger}, isVideoPlaying: ${isVideoPlaying}, videoPaused: ${videoPaused}, videoPanel exists: ${!!videoPanel}`
+          );
+          console.log(
+            "[CodeSurfers] Generation detected - shouldTrigger:",
+            shouldTrigger,
+            "isVideoPlaying:",
+            isVideoPlaying,
+            "videoPanel exists:",
+            !!videoPanel
+          );
+
           // Clear any pending hide timeout
           if (hideTimeout) {
             clearTimeout(hideTimeout);
             hideTimeout = undefined;
           }
 
-          startVideo(context);
+          // Start video if not playing, or resume if paused
+          if (!isVideoPlaying || videoPaused) {
+            outputChannel.appendLine("[Starting/resuming video]");
+            console.log("[CodeSurfers] Starting/resuming video");
+            startVideo(context);
+          }
         } else if (isVideoPlaying && shouldTrigger) {
           // If video is playing and we detect more generation, reset the pause timer
           if (hideTimeout) {
@@ -218,10 +239,24 @@ function startCodeGenerationDetection(context: vscode.ExtensionContext) {
   // Monitor diagnostics changes (rapid diagnostics often indicate new code)
   context.subscriptions.push(
     vscode.languages.onDidChangeDiagnostics((event) => {
+      const config = vscode.workspace.getConfiguration("codesurfers");
+      const detectionMode = config.get<string>("detectionMode", "smart");
+
+      // Skip in manual mode
+      if (detectionMode === "manual") {
+        return;
+      }
+
       // Large numbers of diagnostic changes can indicate AI-generated code
-      if (event.uris.length > 3 && !isVideoPlaying) {
-        const config = vscode.workspace.getConfiguration("codesurfers");
-        if (config.get("autoPlay")) {
+      if (event.uris.length > 3 && config.get("autoPlay")) {
+        // Clear any pending hide timeout
+        if (hideTimeout) {
+          clearTimeout(hideTimeout);
+          hideTimeout = undefined;
+        }
+
+        // Start or resume video
+        if (!isVideoPlaying) {
           startVideo(context);
         }
       }
@@ -247,6 +282,13 @@ function startCodeGenerationDetection(context: vscode.ExtensionContext) {
       if (timeSinceLastEdit > hideDelay) {
         // Set a timeout instead of immediately pausing
         hideTimeout = setTimeout(() => {
+          outputChannel.appendLine(
+            `[Hide timeout triggered] autoHide: ${config.get("autoHide")}`
+          );
+          console.log(
+            "[CodeSurfers] Hide timeout triggered - autoHide:",
+            config.get("autoHide")
+          );
           if (config.get("autoHide")) {
             hideVideoPanel();
           } else {
@@ -473,12 +515,15 @@ function getWebviewContent(videoUrl: string): string {
             
             window.addEventListener('message', event => {
                 const message = event.data;
+                console.log('[CodeSurfers Webview] Received message:', message);
                 switch (message.command) {
                     case 'play':
+                        console.log('[CodeSurfers Webview] Playing video');
                         player.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
                         startTimeTracking();
                         break;
                     case 'pause':
+                        console.log('[CodeSurfers Webview] Pausing video');
                         player.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
                         if (checkTimeInterval) {
                             clearInterval(checkTimeInterval);
@@ -509,30 +554,55 @@ function getWebviewContent(videoUrl: string): string {
 }
 
 function startVideo(context: vscode.ExtensionContext) {
+  outputChannel.appendLine(
+    `[startVideo] videoPanel exists: ${!!videoPanel}, videoPaused: ${videoPaused}, isVideoPlaying: ${isVideoPlaying}`
+  );
+  console.log(
+    "[CodeSurfers] startVideo called - videoPanel exists:",
+    !!videoPanel,
+    "videoPaused:",
+    videoPaused
+  );
+  const wasAlreadyPaused = videoPaused;
+
   if (!videoPanel) {
     createVideoPanel(context);
     // Small delay to ensure the panel is ready
     setTimeout(() => {
+      outputChannel.appendLine("[Sending play command to new panel]");
+      console.log("[CodeSurfers] Sending play command to new panel");
       videoPanel?.webview.postMessage({ command: "play" });
     }, 500);
   } else {
-    videoPanel?.webview.postMessage({ command: "play" });
+    // Panel exists, just send play command to resume
+    outputChannel.appendLine("[Sending play command to existing panel]");
+    console.log("[CodeSurfers] Sending play command to existing panel");
+    videoPanel.webview.postMessage({ command: "play" });
   }
 
   isVideoPlaying = true;
   videoPaused = false;
 
-  // Track stats
-  const editor = vscode.window.activeTextEditor;
-  currentLineCount = editor ? editor.document.lineCount : 0;
-  const videoUrl = vscode.workspace
-    .getConfiguration("codesurfers")
-    .get("videoUrl") as string;
-  statsTracker.startSession(videoUrl, currentLineCount);
+  // Only start a new stats session if we weren't just paused
+  if (!wasAlreadyPaused) {
+    // Track stats
+    const editor = vscode.window.activeTextEditor;
+    currentLineCount = editor ? editor.document.lineCount : 0;
+    const videoUrl = vscode.workspace
+      .getConfiguration("codesurfers")
+      .get("videoUrl") as string;
+    statsTracker.startSession(videoUrl, currentLineCount);
+  }
 }
 
 function pauseVideo() {
-  videoPanel?.webview.postMessage({ command: "pause" });
+  outputChannel.appendLine(
+    `[pauseVideo] videoPanel exists: ${!!videoPanel}, isVideoPlaying: ${isVideoPlaying}`
+  );
+  console.log("[CodeSurfers] pauseVideo called");
+  if (videoPanel) {
+    videoPanel.webview.postMessage({ command: "pause" });
+  }
   isVideoPlaying = false;
   videoPaused = true;
 
@@ -543,6 +613,8 @@ function pauseVideo() {
 }
 
 function hideVideoPanel() {
+  outputChannel.appendLine("[hideVideoPanel called]");
+  console.log("[CodeSurfers] hideVideoPanel called");
   // First pause the video to maintain position
   pauseVideo();
 
@@ -550,6 +622,8 @@ function hideVideoPanel() {
   if (videoPanel) {
     videoPanel.dispose();
     videoPanel = undefined;
+    // Reset the paused state since panel is gone
+    videoPaused = false;
   }
 }
 

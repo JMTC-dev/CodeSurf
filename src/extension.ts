@@ -271,14 +271,19 @@ function startCodeGenerationDetection(context: vscode.ExtensionContext) {
 
     // Clean up old file change entries
     for (const [file, timestamp] of recentFileChanges) {
-      if (now - timestamp > 10000) {
+      if (now - timestamp > 30000) {
         recentFileChanges.delete(file);
       }
     }
 
+    // Skip auto-pause if neverAutoPause is enabled
+    if (config.get("neverAutoPause", false)) {
+      return;
+    }
+
     // Only check for pause/hide if video is actually playing and no timeout is already set
     if (isVideoPlaying && !hideTimeout) {
-      const hideDelay = config.get("hideDelay", 4000);
+      const hideDelay = config.get("hideDelay", 10000);
       if (timeSinceLastEdit > hideDelay) {
         // Set a timeout instead of immediately pausing
         hideTimeout = setTimeout(() => {

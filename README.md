@@ -80,8 +80,11 @@ Configure the extension in VS Code settings:
 - `codesurfers.pauseOnFocus`: Pause video when editor gains focus (default: false)
 - `codesurfers.soundEnabled`: Enable sound by default (default: false, requires user interaction)
 - `codesurfers.autoHide`: Automatically hide video panel when generation stops (default: false)
-- `codesurfers.hideDelay`: Milliseconds to wait before hiding (default: 10000, range: 500-10000)
-  - The video will keep playing for 10 seconds after code generation stops
+- **`codesurfers.neverAutoPause`**: Never automatically pause the video (default: false)
+  - When enabled, video keeps playing until manually stopped
+- `codesurfers.hideDelay`: Milliseconds to wait before hiding (default: 10000, range: 500-300000)
+  - The video will keep playing for up to 5 minutes after code generation stops
+  - Set to maximum (300000) for 5-minute delay
 - `codesurfers.panelColumn`: Which editor column to show the video in (default: "beside")
   - Options: "active", "beside", "one", "two", "three", etc. up to "nine"
 
@@ -213,7 +216,8 @@ If the video triggers too often during regular coding:
 
 ### Video keeps pausing unexpectedly
 
-- Increase `codesurfers.hideDelay` to wait longer before pausing
+- Increase `codesurfers.hideDelay` to wait longer before pausing (max: 300000ms = 5 minutes)
+- Enable `codesurfers.neverAutoPause` to disable automatic pausing entirely
 - Disable `codesurfers.pauseOnFocus` if you switch between windows often
 - The extension now has smarter pause detection that resets when it detects ongoing generation
 

@@ -132,14 +132,19 @@
         "codesurfers.autoHide": {
           "type": "boolean",
           "default": false,
-          "description": "Automatically hide video panel when code generation stops"
+          "description": "Automatically hide video panel when generation stops"
+        },
+        "codesurfers.neverAutoPause": {
+          "type": "boolean",
+          "default": false,
+          "description": "Never automatically pause the video (keeps playing until manually stopped)"
         },
         "codesurfers.hideDelay": {
           "type": "number",
           "default": 10000,
           "minimum": 500,
-          "maximum": 10000,
-          "description": "Milliseconds to wait before hiding video after generation stops (when autoHide is enabled)"
+          "maximum": 300000,
+          "description": "Milliseconds to wait before hiding video after generation stops (when autoHide is enabled). Max: 5 minutes (300000ms)"
         },
         "codesurfers.panelColumn": {
           "type": "string",

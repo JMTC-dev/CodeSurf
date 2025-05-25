@@ -1,0 +1,165 @@
+{
+  "name": "codesurf",
+  "displayName": "CodeSurf",
+  "description": "Play Subway Surfer clips while generating code",
+  "version": "1.0.0",
+  "publisher": "codesurf",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/codesurf"
+  },
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Other",
+    "Fun"
+  ],
+  "keywords": [
+    "subway surfer",
+    "code generation",
+    "entertainment",
+    "cursor",
+    "ai"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "codesurf.toggleVideo",
+        "title": "CodeSurf: Toggle Subway Surfer Video"
+      },
+      {
+        "command": "codesurf.setVideoUrl",
+        "title": "CodeSurf: Set YouTube Video URL"
+      },
+      {
+        "command": "codesurf.showStats",
+        "title": "CodeSurf: Show Statistics",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "codesurf.resetStats",
+        "title": "CodeSurf: Reset Statistics"
+      }
+    ],
+    "configuration": {
+      "title": "CodeSurf",
+      "properties": {
+        "codesurf.videoUrl": {
+          "type": "string",
+          "default": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+          "description": "YouTube video URL to play (use embed URL format)"
+        },
+        "codesurf.autoPlay": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically play video when code generation starts"
+        },
+        "codesurf.detectionSensitivity": {
+          "type": "number",
+          "default": 100,
+          "minimum": 50,
+          "maximum": 500,
+          "description": "Milliseconds between edits to trigger video (lower = more sensitive)"
+        },
+        "codesurf.videoPosition": {
+          "type": "string",
+          "default": "sidebar",
+          "enum": [
+            "sidebar",
+            "bottom-right",
+            "top-right",
+            "bottom-left",
+            "top-left"
+          ],
+          "description": "Position of the video panel"
+        },
+        "codesurf.videoOpacity": {
+          "type": "number",
+          "default": 1,
+          "minimum": 0.3,
+          "maximum": 1,
+          "description": "Opacity of the video panel (0.3-1.0)"
+        },
+        "codesurf.pauseOnFocus": {
+          "type": "boolean",
+          "default": false,
+          "description": "Pause video when editor gains focus"
+        },
+        "codesurf.soundEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable sound by default (requires user interaction)"
+        },
+        "codesurf.autoHide": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically hide video panel when code generation stops"
+        },
+        "codesurf.hideDelay": {
+          "type": "number",
+          "default": 4000,
+          "minimum": 500,
+          "maximum": 10000,
+          "description": "Milliseconds to wait before hiding video after generation stops (when autoHide is enabled)"
+        },
+        "codesurf.panelColumn": {
+          "type": "string",
+          "default": "beside",
+          "enum": [
+            "active",
+            "beside",
+            "one",
+            "two",
+            "three",
+            "four",
+            "five",
+            "six",
+            "seven",
+            "eight",
+            "nine"
+          ],
+          "enumDescriptions": [
+            "Same column as active editor",
+            "Column beside the active editor",
+            "First editor column",
+            "Second editor column",
+            "Third editor column",
+            "Fourth editor column",
+            "Fifth editor column",
+            "Sixth editor column",
+            "Seventh editor column",
+            "Eighth editor column",
+            "Ninth editor column"
+          ],
+          "description": "Which editor column to show the video panel in"
+        }
+      }
+    },
+    "keybindings": [
+      {
+        "command": "codesurf.toggleVideo",
+        "key": "ctrl+shift+s",
+        "mac": "cmd+shift+s"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.95.0",
+    "@types/node": "^22.10.5",
+    "typescript": "^5.7.3",
+    "@vscode/vsce": "^3.2.1",
+    "esbuild": "^0.24.2"
+  }
+}

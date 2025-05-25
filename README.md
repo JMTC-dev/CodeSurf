@@ -8,6 +8,7 @@ Play Subway Surfer clips while Cursor/VS Code generates code! Because who said c
 - 🎬 Customizable YouTube video URL
 - ⏯️ Manual toggle control via command palette or keyboard shortcut
 - 🔄 Auto-pause when generation stops (with smart detection to avoid false pauses)
+- 🎯 **Smart detection modes** - Choose between manual, smart, or aggressive detection
 - 🫥 **Auto-hide mode** - Video disappears when not needed, preserving playback position
 - 📊 **Statistics tracking** - See your coding stats with style
 - 🔇 **Mute/unmute controls** - Start muted for autoplay compatibility
@@ -64,17 +65,24 @@ When the video panel is open:
 
 Configure the extension in VS Code settings:
 
-- `codesurfers.videoUrl`: YouTube embed URL to play (default: a classic)
+- `codesurfers.videoUrl`: YouTube embed URL to play (default: subway surfers gameplay)
 - `codesurfers.autoPlay`: Automatically play when code generation starts (default: true)
+- **`codesurfers.detectionMode`**: How to detect code generation (default: "smart")
+  - `"manual"` - Only play video when manually toggled (no auto-detection)
+  - `"smart"` - Balanced detection requiring multiple signals (recommended)
+  - `"aggressive"` - Trigger on any code activity
 - `codesurfers.detectionSensitivity`: Milliseconds between edits to trigger video (default: 100, range: 50-500)
+- **`codesurfers.minLinesForDetection`**: Minimum lines to trigger (default: 5, range: 1-20)
+- **`codesurfers.minCharactersForDetection`**: Minimum characters to trigger (default: 200, range: 50-1000)
+- **`codesurfers.requireMultiplePatterns`**: Require 3+ code patterns instead of 2 (default: true)
 - `codesurfers.videoPosition`: Position of video panel (default: "sidebar", options: "sidebar", "bottom-right", "top-right", "bottom-left", "top-left")
 - `codesurfers.videoOpacity`: Opacity of the video panel (default: 1.0, range: 0.3-1.0)
 - `codesurfers.pauseOnFocus`: Pause video when editor gains focus (default: false)
 - `codesurfers.soundEnabled`: Enable sound by default (default: false, requires user interaction)
-- **`codesurfers.autoHide`**: Automatically hide video panel when generation stops (default: false)
-- **`codesurfers.hideDelay`**: Milliseconds to wait before hiding (default: 4000, range: 500-10000)
-  - The video will keep playing for 4-5 seconds after code generation stops
-- **`codesurfers.panelColumn`**: Which editor column to show the video in (default: "beside")
+- `codesurfers.autoHide`: Automatically hide video panel when generation stops (default: false)
+- `codesurfers.hideDelay`: Milliseconds to wait before hiding (default: 10000, range: 500-10000)
+  - The video will keep playing for 10 seconds after code generation stops
+- `codesurfers.panelColumn`: Which editor column to show the video in (default: "beside")
   - Options: "active", "beside", "one", "two", "three", etc. up to "nine"
 
 ### Setting a Custom Video
@@ -179,6 +187,29 @@ Feel free to submit issues and enhancement requests!
 ISC
 
 ## Troubleshooting
+
+### Video plays during normal programming (not just AI)
+
+If the video triggers too often during regular coding:
+
+1. **Switch to Smart Mode** (recommended):
+
+   - Set `codesurfers.detectionMode` to `"smart"`
+   - This requires multiple detection signals to trigger
+
+2. **Use Manual Mode**:
+
+   - Set `codesurfers.detectionMode` to `"manual"`
+   - Video only plays when you toggle it with Ctrl+Shift+S
+
+3. **Adjust Detection Thresholds**:
+
+   - Increase `codesurfers.minLinesForDetection` (default: 5)
+   - Increase `codesurfers.minCharactersForDetection` (default: 200)
+   - Enable `codesurfers.requireMultiplePatterns` (default: true)
+
+4. **For Quick Fixes**:
+   - Just use the keyboard shortcut (Ctrl+Shift+S) to manually control when video plays
 
 ### Video keeps pausing unexpectedly
 

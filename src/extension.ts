@@ -83,21 +83,30 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 function detectLargeBlockChanges(
-  event: vscode.TextDocumentChangeEvent
+  event: vscode.TextDocumentChangeEvent,
+  config: vscode.WorkspaceConfiguration
 ): boolean {
+  const minLines = config.get("minLinesForDetection", 5);
+  const minChars = config.get("minCharactersForDetection", 200);
+
   for (const change of event.contentChanges) {
     const addedLines = change.text.split("\n").length;
     const charactersAdded = change.text.length;
 
-    // If more than 3 lines or 150 characters added at once, likely AI generation
-    if (addedLines > 3 || charactersAdded > 150) {
+    // Use configurable thresholds
+    if (addedLines >= minLines || charactersAdded >= minChars) {
       return true;
     }
   }
   return false;
 }
 
-function detectAIPatterns(event: vscode.TextDocumentChangeEvent): boolean {
+function detectAIPatterns(
+  event: vscode.TextDocumentChangeEvent,
+  config: vscode.WorkspaceConfiguration
+): boolean {
+  const requireMultiple = config.get("requireMultiplePatterns", true);
+
   for (const change of event.contentChanges) {
     const text = change.text;
 
@@ -109,11 +118,16 @@ function detectAIPatterns(event: vscode.TextDocumentChangeEvent): boolean {
       /\/\*\*[\s\S]+?\*\//, // JSDoc comments
       /import\s+.+\s+from\s+['"][^'"]+['"]/, // Import statements
       /export\s+(default\s+)?/, // Export statements
+      /interface\s+\w+\s*{/, // TypeScript interfaces
+      /type\s+\w+\s*=/, // TypeScript type definitions
     ];
 
     // If the change contains structured code patterns, more likely to be AI
     const matchCount = patterns.filter((pattern) => pattern.test(text)).length;
-    return matchCount >= 2;
+
+    // Require more patterns if configured
+    const threshold = requireMultiple ? 3 : 2;
+    return matchCount >= threshold;
   }
   return false;
 }
@@ -124,6 +138,13 @@ function startCodeGenerationDetection(context: vscode.ExtensionContext) {
     vscode.workspace.onDidChangeTextDocument(async (event) => {
       const now = Date.now();
       const config = vscode.workspace.getConfiguration("codesurfers");
+      const detectionMode = config.get<string>("detectionMode", "smart");
+
+      // Skip detection in manual mode
+      if (detectionMode === "manual") {
+        return;
+      }
+
       const sensitivity = config.get("detectionSensitivity", 100);
 
       // Track file changes for multi-file detection
@@ -137,27 +158,43 @@ function startCodeGenerationDetection(context: vscode.ExtensionContext) {
         // Multiple detection methods
         const isRapidEdit =
           timeSinceLastEdit < sensitivity && timeSinceLastEdit > 0;
-        const isLargeBlock = detectLargeBlockChanges(event);
-        const hasAIPatterns = detectAIPatterns(event);
+        const isLargeBlock = detectLargeBlockChanges(event, config);
+        const hasAIPatterns = detectAIPatterns(event, config);
 
         // Check for clipboard paste (common with AI tools)
         let isClipboardPaste = false;
-        try {
-          const clipboardText = await vscode.env.clipboard.readText();
-          isClipboardPaste = event.contentChanges.some(
-            (change) =>
-              clipboardText.includes(change.text) && change.text.length > 50
-          );
-        } catch (e) {
-          // Clipboard access might fail
+        if (detectionMode !== "manual") {
+          try {
+            const clipboardText = await vscode.env.clipboard.readText();
+            // Increase threshold for clipboard detection
+            isClipboardPaste = event.contentChanges.some(
+              (change) =>
+                clipboardText.includes(change.text) && change.text.length > 100
+            );
+          } catch (e) {
+            // Clipboard access might fail
+          }
         }
 
-        // Trigger if any detection method is positive
-        if (
-          (isRapidEdit || isLargeBlock || hasAIPatterns || isClipboardPaste) &&
-          !isVideoPlaying &&
-          config.get("autoPlay")
-        ) {
+        // In smart mode, require multiple signals for detection
+        let shouldTrigger = false;
+        if (detectionMode === "smart") {
+          // Require at least 2 detection methods to trigger
+          const detectionCount = [
+            isRapidEdit,
+            isLargeBlock,
+            hasAIPatterns,
+            isClipboardPaste,
+          ].filter(Boolean).length;
+          shouldTrigger = detectionCount >= 2;
+        } else if (detectionMode === "aggressive") {
+          // Aggressive mode: any detection method triggers
+          shouldTrigger =
+            isRapidEdit || isLargeBlock || hasAIPatterns || isClipboardPaste;
+        }
+
+        // Trigger if detection criteria met
+        if (shouldTrigger && !isVideoPlaying && config.get("autoPlay")) {
           // Clear any pending hide timeout
           if (hideTimeout) {
             clearTimeout(hideTimeout);
@@ -165,10 +202,7 @@ function startCodeGenerationDetection(context: vscode.ExtensionContext) {
           }
 
           startVideo(context);
-        } else if (
-          isVideoPlaying &&
-          (isRapidEdit || isLargeBlock || hasAIPatterns || isClipboardPaste)
-        ) {
+        } else if (isVideoPlaying && shouldTrigger) {
           // If video is playing and we detect more generation, reset the pause timer
           if (hideTimeout) {
             clearTimeout(hideTimeout);

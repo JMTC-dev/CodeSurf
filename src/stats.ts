@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 
-export interface codesurfersStats {
+export interface CodeSurfStats {
   totalGenerationTime: number;
   totalVideoTime: number;
   sessionsCount: number;
@@ -11,7 +11,7 @@ export interface codesurfersStats {
 }
 
 export class StatsTracker {
-  private stats: codesurfersStats;
+  private stats: CodeSurfStats;
   private sessionStartTime: number = 0;
   private currentSessionTime: number = 0;
   private linesAtSessionStart: number = 0;
@@ -20,7 +20,7 @@ export class StatsTracker {
     this.stats = this.loadStats();
   }
 
-  private loadStats(): codesurfersStats {
+  private loadStats(): CodeSurfStats {
     const saved = this.context.globalState.get<any>("codesurfers.stats");
     if (saved) {
       return {
@@ -92,7 +92,7 @@ export class StatsTracker {
     this.saveStats();
   }
 
-  getStats(): codesurfersStats {
+  getStats(): CodeSurfStats {
     return this.stats;
   }
 
@@ -112,7 +112,7 @@ export class StatsTracker {
       }
     };
 
-    return `🏄 codesurfers Statistics 🏄
+    return `🏄 CodeSurfers Statistics 🏄
         
 Total Generation Time: ${formatTime(stats.totalGenerationTime)}
 Total Sessions: ${stats.sessionsCount}

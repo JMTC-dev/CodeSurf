@@ -66,6 +66,40 @@
           "maximum": 500,
           "description": "Milliseconds between edits to trigger video (lower = more sensitive)"
         },
+        "codesurfers.detectionMode": {
+          "type": "string",
+          "default": "smart",
+          "enum": [
+            "manual",
+            "smart",
+            "aggressive"
+          ],
+          "enumDescriptions": [
+            "Only play video when manually toggled",
+            "Detect AI generation with balanced sensitivity",
+            "Detect any rapid code changes"
+          ],
+          "description": "How to detect code generation"
+        },
+        "codesurfers.minLinesForDetection": {
+          "type": "number",
+          "default": 5,
+          "minimum": 1,
+          "maximum": 20,
+          "description": "Minimum lines added at once to trigger video"
+        },
+        "codesurfers.minCharactersForDetection": {
+          "type": "number",
+          "default": 200,
+          "minimum": 50,
+          "maximum": 1000,
+          "description": "Minimum characters added at once to trigger video"
+        },
+        "codesurfers.requireMultiplePatterns": {
+          "type": "boolean",
+          "default": true,
+          "description": "Require multiple code patterns to trigger (reduces false positives)"
+        },
         "codesurfers.videoPosition": {
           "type": "string",
           "default": "sidebar",
